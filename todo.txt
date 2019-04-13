@@ -1,13 +1,14 @@
 ﻿
 -yêu cầu của giám khảo:
-	-thêm ko map.
+	-thêm ko map.                                                              Done
 	-thêm cắn vào đuôi thì đứt đuôi nhưng rắn vẫn sống.
 	-thêm thuật toán tự tìm đường ngắn nhất đến mồi.
 -những lỗi phát hiện cần fix:
-	-xử lí clear màn hình thì bỏ map ra để fix hiện tượng giật màn hình: Done
-	-fix tốc độ: bằng cách thay đổi kích thước dãn dòng của màn hình console.
-	-xử lí bỏ trường hợp rắn đổi đầu bị die.
+	-xử lí clear màn hình thì bỏ map ra để fix hiện tượng giật màn hình:       Done 
+	-fix tốc độ: bằng cách thay đổi kích thước dãn dòng của màn hình console.  Done 13/04/2019_An
+	-xử lí bỏ trường hợp rắn đổi đầu bị die.                                   Done 13/04/2019_An
+	-xử lí hoa quả random trên tường					   	
 -những ý tưởng phát triển thêm:
-	thêm map.
+	thêm map. 								   Done 13/04/2019_An_ Them 2 map
 	tạo thêm một vài con rắn thi đấu.
 	
