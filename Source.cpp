@@ -32,7 +32,7 @@ struct HoaQua
 
 struct Snake
 {
-	ToaDo dot[31];
+	ToaDo dot[100];
 	int n;
 	TrangThai tt;
 };
@@ -49,9 +49,10 @@ int ChonMap() {
 	gotoXY(30, 10);
 	printf("==>Chon Map<==\n");
 	printf("1. No Wall\n");
-	printf("2. Map\n");
+	printf("2. EEG Map\n");
 	printf("3. Never Die\n");
-	printf("4. Exit");
+	printf("4. Snake Bot\n");
+	printf("5. Exit");
 	int i = 0;
 	scanf("%d", &i);
 	return i;
@@ -60,8 +61,8 @@ int ChonMap() {
 void KhoiTao(Snake& snake, HoaQua& hq)
 {
 	snake.n = 1;
-	snake.dot[0].x = 1;
-	snake.dot[0].y = 1;
+	snake.dot[0].x = 0;
+	snake.dot[0].y = 0;
 
 	snake.tt = RIGHT;
 
@@ -72,6 +73,14 @@ void KhoiTao(Snake& snake, HoaQua& hq)
 	pastPress[DOWN] = false;
 	pastPress[RIGHT] = true;
 	pastPress[LEFT] = false;
+}
+
+void KhoiTaoBot(Snake& snakeBot)
+{
+	snakeBot.n = 5;
+	snakeBot.dot[0].x = 10;
+	snakeBot.dot[0].y = 10;
+	snakeBot.tt = RIGHT;
 }
 
 // map
@@ -134,7 +143,7 @@ void MapEGG()
 void HienThi(Snake snake, HoaQua hq)
 {
 	//choose map
-	if (chooseMap==1) MapClear();
+	if (chooseMap==1 || chooseMap == 3) MapClear();
 	else if (chooseMap==2)	MapEGG();
 
 	// in ra hoa quả
@@ -158,7 +167,20 @@ void HienThi(Snake snake, HoaQua hq)
 	}
 }
 
-
+void HienThiBot(Snake snakeBot) {
+	TextColor(ColorCode_Pink);
+	gotoXY(snakeBot.dot[0].x, snakeBot.dot[0].y);
+	putchar(2);
+	//in nốt phần thân còn lại.
+	for (int i = 1; i <= snakeBot.n; i++)
+	{
+		gotoXY(snakeBot.dot[i].x, snakeBot.dot[i].y);
+		if (i == snakeBot.n)
+			putchar(' ');
+		else
+			putchar('#');// xóa cái đuôi.
+	}
+}
 void DieuKhien_DiChuyen(Snake& snake)
 {
 	// truyền trạng thái cho đốt cũ
@@ -224,11 +246,37 @@ void DieuKhien_DiChuyen(Snake& snake)
 	}
 }
 
+void DieuKhien_DiChuyen_Bot(Snake& snakeBot, HoaQua hq) {
+
+	for (int i = snakeBot.n; i > 0; i--)
+		snakeBot.dot[i] = snakeBot.dot[i - 1];
+
+	if (snakeBot.tt == UP)
+	{
+		snakeBot.dot[0].y--;
+	}
+	else if (snakeBot.tt == DOWN)
+	{
+		snakeBot.dot[0].y++;
+	}
+	else if (snakeBot.tt == LEFT)
+	{
+		snakeBot.dot[0].x--;
+
+	}
+	else if (snakeBot.tt == RIGHT)
+	{
+		snakeBot.dot[0].x++;
+	}
+
+}
 
 // trả về 0 nếu không có gì
 // trả về -1 nếu thua game
-int XuLy(Snake & snake, HoaQua & hq, int& ThoiGianSleep)
+int XuLy(Snake & snake, Snake & snakeBot, HoaQua & hq, int& ThoiGianSleep, int chooseMap)
 {
+	// xử lý chạm biên không chết.
+	// rắn người.
 	if (snake.dot[0].x <= 0) 
 	{
 		snake.dot[0].x = consoleWidth - 1;
@@ -246,14 +294,37 @@ int XuLy(Snake & snake, HoaQua & hq, int& ThoiGianSleep)
 		snake.dot[0].y = 1;
 		snake.tt = DOWN;
 	}
-		
-
+	// rắn bot.
+	if (snakeBot.dot[0].x <= 0)
+	{
+		snakeBot.dot[0].x = consoleWidth - 1;
+		snakeBot.tt = LEFT;
+	}
+	if (snakeBot.dot[0].x >= consoleWidth) {
+		snakeBot.dot[0].x = 1;
+		snakeBot.tt = RIGHT;
+	}
+	if (snakeBot.dot[0].y <= 0) {
+		snakeBot.dot[0].y = consoleHeight - 1;
+		snakeBot.tt = UP;
+	}
+	if (snakeBot.dot[0].y >= consoleHeight) {
+		snakeBot.dot[0].y = 1;
+		snakeBot.tt = DOWN;
+	}
+	// Xử lý cắn vào thân	
 	for (int i = 1; i < snake.n; i++)
-		if ((snake.dot[0].x == snake.dot[i].x &&
-			snake.dot[0].y == snake.dot[i].y) || 
-			(map[snake.dot[0].y][snake.dot[0].x] == 1))
-			return -1;
-
+		if (snake.dot[0].x == snake.dot[i].x && snake.dot[0].y == snake.dot[i].y) {
+			if(chooseMap != 3) return -1;// Chết.
+			if (chooseMap == 3) {
+				snake.n = i;// Không chết.
+			}
+		}
+	//xu ly ran can vao map
+	if (chooseMap == 2) 
+		if (map[snake.dot[0].y][snake.dot[0].x] == 1)
+		return -1;
+			
 	if (snake.dot[0].x == hq.td.x && snake.dot[0].y == hq.td.y)
 	{
 		// ăn được hoa quả
@@ -275,21 +346,18 @@ int XuLy(Snake & snake, HoaQua & hq, int& ThoiGianSleep)
 			snake.dot[0].x++;
 
 
-		hq.td.x = rand() % consoleWidth;
-		while ((hq.td.x >= (consoleWidth - 1)) || (hq.td.x == 0))
-		{
-			hq.td.x = rand() % consoleWidth;
-			//std::cout << hq.td.x;
-		}
+		hq.td.x = rand() % consoleWidth; 
 		hq.td.y = rand() % consoleHeight;
-		while ((hq.td.y >= (consoleWidth - 1)) || (hq.td.y == 0) || (map[hq.td.y][hq.td.x]==1))
+		while (map[hq.td.y][hq.td.x]==1)
 		{
-			hq.td.y = rand() % consoleWidth;
+			hq.td.y = rand() % consoleHeight;
 			
 		}
 	
-		//if (ThoiGianSleep > 30)      em khong hieu doan if nay co tac dung gi?
-		//	ThoiGianSleep -= 20;
+		if (snake.n % 3 == 0){
+			if (ThoiGianSleep > 30)
+				ThoiGianSleep -= 20;
+		}
 	}
 	return 0;
 }
@@ -298,7 +366,7 @@ int XuLy(Snake & snake, HoaQua & hq, int& ThoiGianSleep)
 int main()
 {
 	//Init
-	Snake snake;
+	Snake snake, snakeBot;
 	HoaQua hq;
 	int ma = 0;
 	int ThoiGianSleep = 100;
@@ -307,9 +375,16 @@ int main()
 	clrscr();
 	srand(time(NULL));	// khởi tạo bộ sinh số ngẫu nhiên
 	KhoiTao(snake, hq);
+	KhoiTaoBot(snakeBot);
+
 	while (1)
 	{
 		Nocursortype();
+		//Bot
+		if (chooseMap == 4) {
+			HienThiBot(snakeBot);
+			DieuKhien_DiChuyen_Bot(snakeBot, hq);
+		}
 		// hiển thị
 		HienThi(snake, hq);
 
@@ -317,7 +392,7 @@ int main()
 		DieuKhien_DiChuyen(snake);
 
 		// xử lý ăn hoa quả, thua game
-		ma = XuLy(snake, hq, ThoiGianSleep);
+		ma = XuLy(snake, snakeBot, hq, ThoiGianSleep, chooseMap);
 
 		// thua game, thắng game
 		if (ma == -1)	// thua game đó nha
